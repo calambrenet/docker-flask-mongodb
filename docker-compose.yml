@@ -1,0 +1,44 @@
+version: '3'
+services:
+  api:
+    build: Dockerfiles/python-flask-pymongo
+    volumes:
+      - ./api:/app
+    links:
+      - mongodb
+    ports:
+      - "5000:5000"
+    command: /usr/bin/python /app/app.py
+    environment:
+      APP_ENV: "prod"
+      APP_DEBUG: "False"
+      APP_PORT: 5000
+      MONGODB_DATABASE: ${DATABASE_NAME}
+      MONGODB_USERNAME: ${DATABASE_USER}  
+      MONGODB_PASSWORD: ${DATABASE_PASSWORD}  
+      MONGODB_HOSTNAME: mongodb
+    depends_on:
+      - mongodb
+    networks:
+      - frontend
+      - backend
+  mongodb:
+    image: mongo:3.6
+    restart: unless-stopped
+    command: mongod --auth
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${DATABASE_NAME}      
+    volumes:
+      - ./mongodbdata:/data
+    ports:
+      - 27017:27017
+    networks:
+      - backend
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
